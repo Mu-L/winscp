@@ -34,7 +34,7 @@ extern "C" {
 # define OPENSSL_VERSION_MINOR  3
 /* clang-format on */
 /* clang-format off */
-# define OPENSSL_VERSION_PATCH  5
+# define OPENSSL_VERSION_PATCH  6
 /* clang-format on */
 
 /*
