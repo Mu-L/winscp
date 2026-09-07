@@ -535,7 +535,7 @@ bool __fastcall TCustomScpExplorerForm::CommandLineFromAnotherInstance(
       {
         UnicodeString DownloadFile; // unused
         int Flags = GetCommandLineParseUrlFlags(&Params);
-        GetLoginData(SessionName, &Params, DataList.get(), DownloadFile, true, this, Flags);
+        GetLoginData(SessionName, &Params, DataList.get(), DownloadFile, lnSession, this, Flags);
       }
       catch (EAbort &)
       {

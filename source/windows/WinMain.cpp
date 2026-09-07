@@ -22,8 +22,9 @@ UnicodeString GetFolderOrWorkspaceName(const UnicodeString & SessionName)
   return Result;
 }
 //---------------------------------------------------------------------------
-void __fastcall GetLoginData(UnicodeString SessionName, TOptions * Options,
-  TObjectList * DataList, UnicodeString & DownloadFile, bool NeedSession, TForm * LinkedForm, int Flags)
+void GetLoginData(
+  const UnicodeString & SessionName, TOptions * Options,
+  TObjectList * DataList, UnicodeString & DownloadFile, TLoginNeed LoginNeed, TForm * LinkedForm, int Flags)
 {
   bool DefaultsOnly = false;
 
@@ -63,7 +64,7 @@ void __fastcall GetLoginData(UnicodeString SessionName, TOptions * Options,
     }
   }
 
-  if (DefaultsOnly && !NeedSession)
+  if (DefaultsOnly && (LoginNeed == lnNone))
   {
     // No URL specified on command-line and no explicit command-line parameter
     // that requires session was specified => noop
@@ -83,7 +84,7 @@ void __fastcall GetLoginData(UnicodeString SessionName, TOptions * Options,
     // - the specified session does not contain enough information to open [= not even hostname nor local browser]
 
     DebugAssert(DataList->Count <= 1);
-    if (!DoLoginDialog(DataList, LinkedForm))
+    if (!DoLoginDialog(DataList, LinkedForm, (LoginNeed == lnTerminal)))
     {
       Abort();
     }
@@ -1229,7 +1230,19 @@ int __fastcall Execute()
       // from now flash message boxes in background
       SetOnForeground(false);
 
-      bool NeedSession = NewInstance || (ParamCommand != pcNone);
+      TLoginNeed LoginNeed;
+      if (ParamCommand != pcNone)
+      {
+        LoginNeed = lnTerminal;
+      }
+      else if (NewInstance)
+      {
+        LoginNeed = lnSession;
+      }
+      else
+      {
+        LoginNeed = lnNone;
+      }
 
       bool Retry;
       do
@@ -1240,9 +1253,9 @@ int __fastcall Execute()
         {
           int Flags = GetCommandLineParseUrlFlags(Params);
           AddStartupSequence(L"B");
-          GetLoginData(AutoStartSession, Params, DataList.get(), DownloadFile, NeedSession, NULL, Flags);
+          GetLoginData(AutoStartSession, Params, DataList.get(), DownloadFile, LoginNeed, NULL, Flags);
           // GetLoginData now Aborts when session is needed and none is selected
-          if (DebugAlwaysTrue(!NeedSession || (DataList->Count > 0)))
+          if (DebugAlwaysTrue((LoginNeed == lnNone) || (DataList->Count > 0)))
           {
             if (CheckSafe(Params))
             {
@@ -1289,7 +1302,7 @@ int __fastcall Execute()
               }
               else
               {
-                DebugAssert(!NeedSession);
+                DebugAssert(LoginNeed == lnNone);
                 CanStart = true;
               }
 

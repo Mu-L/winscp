@@ -176,8 +176,10 @@ bool __fastcall DoChangeMasterPasswordDialog(UnicodeString & NewPassword);
 
 // windows\WinMain.cpp
 int __fastcall Execute();
-void __fastcall GetLoginData(UnicodeString SessionName, TOptions * Options,
-  TObjectList * DataList, UnicodeString & DownloadFile, bool NeedSession, TForm * LinkedForm, int Flags = 0);
+enum TLoginNeed { lnNone, lnSession, lnTerminal };
+void GetLoginData(
+  const UnicodeString & SessionName, TOptions * Options,
+  TObjectList * DataList, UnicodeString & DownloadFile, TLoginNeed LoginNeed, TForm * LinkedForm, int Flags = 0);
 int GetCommandLineParseUrlFlags(TProgramParams * Params);
 
 // forms\InputDlg.cpp
@@ -253,7 +255,7 @@ bool __fastcall DoImportSessionsDialog(TList * Imported);
 enum TLicense { lcNoLicense = -1, lcWinScp, lcExpat };
 void __fastcall DoLicenseDialog(TLicense License);
 
-bool __fastcall DoLoginDialog(TList * DataList, TForm * LinkedForm);
+bool DoLoginDialog(TList * DataList, TForm * LinkedForm, bool NeedTerminal);
 
   // forms\SiteAdvanced.cpp
 bool __fastcall DoSiteAdvancedDialog(TSessionData * SessionData);

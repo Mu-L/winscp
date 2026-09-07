@@ -24,14 +24,14 @@ const int LoginImageIndex = 0;
 const int OpenWorkspaceImageIndex = 5;
 const int OpenFolderImageIndex = 6;
 //---------------------------------------------------------------------------
-bool __fastcall DoLoginDialog(TList * DataList, TForm * LinkedForm)
+bool DoLoginDialog(TList * DataList, TForm * LinkedForm, bool NeedTerminal)
 {
   DebugAssert(DataList != NULL);
   TLoginDialog * LoginDialog = SafeFormCreate<TLoginDialog>();
   bool Result;
   try
   {
-    LoginDialog->Init(LinkedForm);
+    LoginDialog->Init(LinkedForm, NeedTerminal);
     Result = LoginDialog->Execute(DataList);
   }
   __finally
@@ -63,6 +63,7 @@ __fastcall TLoginDialog::TLoginDialog(TComponent* AOwner)
   FLinkedForm = NULL;
   FRestoring = false;
   FPrevPos = TPoint(std::numeric_limits<LONG>::min(), std::numeric_limits<LONG>::min());
+  FNeedTerminal = false;
 
   // we need to make sure that window procedure is set asap
   // (so that CM_SHOWINGCHANGED handling is applied)
@@ -93,9 +94,10 @@ void __fastcall TLoginDialog::InvalidateSessionData()
   FSessionData = NULL;
 }
 //---------------------------------------------------------------------
-void __fastcall TLoginDialog::Init(TForm * LinkedForm)
+void TLoginDialog::Init(TForm * LinkedForm, bool NeedTerminal)
 {
   FLinkedForm = LinkedForm;
+  FNeedTerminal = NeedTerminal;
   LoadSessions();
   UnicodeString Dummy;
   RunPageantAction->Visible = FindTool(PageantTool, Dummy);
@@ -1247,7 +1249,7 @@ void __fastcall TLoginDialog::ActionListUpdate(TBasicAction * BasicAction,
   }
   else if (Action == LoginAction)
   {
-    LoginAction->Enabled = CanOpen();
+    LoginAction->Enabled = FNeedTerminal ? IsSiteAndCanOpen() : CanOpen();
     LoginAction->Caption = FolderOrWorkspaceSelected ? LoadStr(LOGIN_OPEN) : LoadStr(LOGIN_LOGIN);
     LoginAction->ImageIndex = FolderOrWorkspaceSelected ? (WorkspaceSelected ? OpenWorkspaceImageIndex : OpenFolderImageIndex) : LoginImageIndex;
     UpdateLoginButton();
@@ -1256,6 +1258,7 @@ void __fastcall TLoginDialog::ActionListUpdate(TBasicAction * BasicAction,
   {
     TSessionData * Data = GetSessionData();
     Action->Enabled =
+      // IsLocalBrowser is an excess test as a stored site cannot be a local browser and such test is not done in other similar situations
       (IsSiteAndCanOpen() && !Data->IsLocalBrowser && !Data->Tunnel) ||
       (IsFolderOrWorkspaceAndCanOpen() && IsFolderNode(SessionTree->Selected));
   }
@@ -3159,7 +3162,7 @@ void __fastcall TLoginDialog::PuttyActionExecute(TObject * /*Sender*/)
   }
   // following may take some time, so cache the shift key state,
   // in case user manages to release it before following finishes
-  bool Close = !OpenInNewWindow();
+  bool Close = !OpenInNewWindow() && !FNeedTerminal;
 
   std::unique_ptr<TList> DataList(new TList());
   SaveDataList(DataList.get());
