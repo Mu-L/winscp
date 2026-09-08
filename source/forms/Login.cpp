@@ -3162,7 +3162,8 @@ void __fastcall TLoginDialog::PuttyActionExecute(TObject * /*Sender*/)
   }
   // following may take some time, so cache the shift key state,
   // in case user manages to release it before following finishes
-  bool Close = !OpenInNewWindow() && !FNeedTerminal;
+  bool AOpenInNewWindow = (OpenInNewWindow() != WinConfiguration->KeepLoginAfterOpenInPutty);
+  bool Close = !AOpenInNewWindow && !FNeedTerminal;
 
   std::unique_ptr<TList> DataList(new TList());
   SaveDataList(DataList.get());
