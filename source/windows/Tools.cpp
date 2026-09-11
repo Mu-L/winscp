@@ -213,7 +213,9 @@ void LoadFormDimensions(
 //---------------------------------------------------------------------------
 static void CenterOnMonitor(TForm * Form, Forms::TMonitor * Monitor, const TRect & Bounds)
 {
-  Form->BoundsRect = Monitor->BoundsRect.CenteredRect(Bounds);
+  TRect ABounds = Bounds;
+  CenterFormOn(ABounds, Monitor->WorkareaRect);
+  Form->BoundsRect = ABounds;
 }
 //---------------------------------------------------------------------------
 void RestoreForm(const UnicodeString & AData, TForm * Form, bool PositionOnly, const UnicodeString & DefaultData)
