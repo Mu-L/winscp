@@ -793,9 +793,8 @@ static void __fastcall FormShowingChanged(TForm * Form, TWndMethod WndProc, TMes
     }
   }
 
-  DebugAlwaysTrue(GetMainForm() != nullptr);
-  // Part of following code (but actually not all, TODO), has to happen
-  // for all windows when VCL main window is hidden (particularly the last branch).
+  DebugAssert(GetMainForm() != nullptr);
+  // This has to happen for all windows when VCL main window is hidden.
   // This is different from above brach, that should happen only for top-level visible window.
   if ((Application->MainForm == Form) ||
       // this particularly happens if error occurs while main
